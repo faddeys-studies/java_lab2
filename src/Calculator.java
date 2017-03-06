@@ -67,6 +67,21 @@ public class Calculator {
         return result;
     }
 
+    public String formatValue(float value) {
+        String sign = value > 0 ? "" : "-";
+        if (value < 0) value = -value;
+        long integerPart = (long)value;
+        double fractPartFloat = (value - integerPart) * Math.pow(radix, 6);
+        long fractionalPart = (long)fractPartFloat;
+        if (fractPartFloat > fractionalPart+0.5) {
+            fractionalPart += 1;
+        }
+        while (fractionalPart > radix && fractionalPart%radix == 0) {
+            fractionalPart /= radix;
+        }
+        return sign + Long.toString(integerPart, radix) + "." + Long.toString(fractionalPart, radix);
+    }
+
     private float parseValue(String str) {
         int dotPos = str.indexOf('.');
         float result;
@@ -77,7 +92,7 @@ public class Calculator {
                 String beforeDot = str.substring(0, dotPos);
                 String afterDot = str.substring(dotPos + 1);
                 result = Integer.parseInt(beforeDot, radix);
-                result += (float) Integer.parseInt(afterDot, radix) / afterDot.length();
+                result += Integer.parseInt(afterDot, radix) / Math.pow(radix, afterDot.length());
             }
         } catch (NumberFormatException exc) {
             throw new InputError("wrong number for radix " + Integer.toString(radix));
@@ -120,7 +135,7 @@ public class Calculator {
                     throw new IllegalArgumentException("invalid input");
                 }
                 float result = calc.evaluate(line);
-                System.out.println("= " + Float.toString(result));
+                System.out.println("= " + calc.formatValue(result));
             } catch (IllegalArgumentException exc) {
                 System.out.println(">> " + exc.getMessage());
             }
