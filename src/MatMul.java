@@ -7,12 +7,6 @@ import java.io.FileNotFoundException;
 
 public class MatMul {
 
-    public static class MatrixReadError extends IllegalArgumentException {
-        public MatrixReadError(String msg) {
-            super(msg);
-        }
-    }
-
     public static double[][] readMatrix(Scanner scanner) {
         int nRows = scanner.nextInt(), nCols = scanner.nextInt();
         double result[][] = new double[nRows][];

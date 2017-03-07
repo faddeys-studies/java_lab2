@@ -16,9 +16,10 @@ public class Calculator {
             "([\\da-fA-F]+(?:\\.[\\da-fA-F]+)?)" +
             "\\s*"
     );
+    private static Pattern setRadixPattern = Pattern.compile("\\s*@\\s*(\\d+)\\s*");
 
     private Float lastValue = null;
-    private final int radix;
+    private int radix;
 
     public static class InputError extends IllegalArgumentException {
         public InputError(String message) {
@@ -27,13 +28,20 @@ public class Calculator {
     }
 
     public Calculator(int radix) {
-        this.radix = radix;
+        setRadix(radix);
     }
     public Calculator() {
         this(10);
     }
 
     public float evaluate(String expression) throws InputError {
+
+        Matcher setRadixMatcher = setRadixPattern.matcher(expression);
+        if (setRadixMatcher.matches()) {
+            setRadix(Integer.parseInt(setRadixMatcher.group(1)));
+            return lastValue == null ? 0.0f : lastValue;
+        }
+
         Matcher exprMatcher = expressionPattern.matcher(expression);
         if (!exprMatcher.matches()) {
             throw new InputError("invalid input");
@@ -65,6 +73,13 @@ public class Calculator {
         lastValue = result;
 
         return result;
+    }
+
+    private void setRadix(int newRadix) {
+        if (newRadix < 2 || 16 < newRadix) {
+            throw new InputError("Radix must be in 2..16");
+        }
+        radix = newRadix;
     }
 
     public String formatValue(float value) {
@@ -105,13 +120,9 @@ public class Calculator {
         Calculator calc;
         if (argv.length > 0) {
             try {
-                int radix = Integer.parseUnsignedInt(argv[0]);
-                if (radix == 0 || radix > 16) {
-                    throw new IllegalArgumentException();
-                }
-                calc = new Calculator(radix);
+                calc = new Calculator(Integer.parseUnsignedInt(argv[0]));
             } catch (IllegalArgumentException exc) {
-                // also catches NumberFormatException
+                // also catches NumberFormatException and Calculator.InputError
                 System.out.println("Invalid radix value");
                 return;
             }
@@ -130,10 +141,6 @@ public class Calculator {
             }
 
             try {
-                Matcher exprMatcher = expressionPattern.matcher(line);
-                if (!exprMatcher.matches()) {
-                    throw new IllegalArgumentException("invalid input");
-                }
                 float result = calc.evaluate(line);
                 System.out.println("= " + calc.formatValue(result));
             } catch (IllegalArgumentException exc) {
